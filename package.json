@@ -1,0 +1,36 @@
+{
+  "name": "lotus-runner",
+  "version": "1.0.0",
+  "description": "A framework-agnostic test runner for Node.",
+  "prefersGlobal": true,
+  "main": "./js/src/index",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aleclarson/lotus-runner.git"
+  },
+  "dependencies": {
+    "combine": "aleclarson/combine#1.0.0",
+    "define": "aleclarson/define#1.0.0",
+    "escape-string-regexp": "^1.0.3",
+    "gaze": "~0.5.1",
+    "has": "^1.0.1",
+    "io": "aleclarson/io#1.0.0",
+    "lotus-log": "aleclarson/lotus-log#1.0.0",
+    "lotus-require": "aleclarson/lotus-require#1.0.0",
+    "minimatch": "^2.0.8",
+    "minimist": "~0.0.8",
+    "named-function": "aleclarson/named-function#1.0.3",
+    "type-utils": "aleclarson/type-utils#1.0.0",
+    "walkdir": "0.0.9",
+    "weak-map": "aleclarson/weak-map#1.0.1"
+  },
+  "devDependencies": {
+    "grunt": "^0.4.5",
+    "grunt-contrib-coffee": "aleclarson/grunt-contrib-coffee",
+    "grunt-contrib-watch": "^0.6.1",
+    "load-grunt-tasks": "^3.1.0"
+  },
+  "licenses": [
+    "MIT"
+  ]
+}
