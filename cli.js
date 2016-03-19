@@ -1,7 +1,4 @@
 
-module.exports = function (commands, options) {
-  commands.test = function () {
-    process.options = options
-    require("./js/src/cli")
-  }
+module.exports = function (commands) {
+  commands.test = __dirname + "/js/src/cli";
 }

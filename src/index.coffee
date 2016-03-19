@@ -13,6 +13,8 @@ Runner = require "./runner"
 
 module.exports = (module, options) ->
 
+  return # TODO Fix breaking bugs.
+
   options =
     suite: if has options, "suite" then options.suite else "lotus-jasmine"
     reporter: if has options, "reporter" then options.reporter else "lotus-jasmine/reporter"

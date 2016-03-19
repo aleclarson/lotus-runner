@@ -2,125 +2,133 @@
 # TODO: Prefer module-specific suites and reporters over the globally installed versions.
 #       Use the versions provided by 'lotus-runner/node_modules' when not even a global install exists.
 
-lotus = require "lotus-require"
+Factory = require "factory"
+combine = require "combine"
+Path = require "path"
 
-define = require "define"
-log = require "lotus-log"
-NamedFunction = require "named-function"
-escapeStringRegexp = require "escape-string-regexp"
-{ isAbsolute, dirname, join, resolve, sep } = require "path"
-{ isType, isKind } = require "type-utils"
-{ sync, async } = require "io"
+module.exports =
+Runner = Factory "Runner",
 
-Runner = NamedFunction "Runner", (options) ->
+  optionTypes:
+    suite: String
+    reporter: [ String, Void ]
+    extensions: [ String, Array ]
+    bench: Boolean
 
-  unless this instanceof Runner
-    return new Runner options
+  optionDefaults:
+    suite: "lotus-jasmine"
+    reporter: "lotus-jasmine/reporter"
+    extensions: "js"
+    bench: no
 
-  options ?= {}
+  initFrozenValues: (options) ->
+    suite: @_initSuite options.suite
+    reporter: @_initReporter options.reporter
+    extensions: @_initExtensions options.extensions
 
-  if !isType options.suite, String
-    throw TypeError "'options.suite' must be a String"
+  init: (options) ->
 
-  if isType options.reporter, String
-    options.reporter = module.optional options.reporter
+    if options.bench
+      global.Benchmark = require "benchmark"
 
-  if !isType options.extensions, String
-    options.extensions = "js"
+    @suite.load { @reporter }
 
-  @suite = require options.suite
-  @suite.name = @suite.path.slice 0, sepIndex = @suite.path.indexOf sep
-  @suite.dir = dirname require.resolve @suite.name
-  @suite.entry = join @suite.dir, @suite.path.slice sepIndex
-  @suite.load options
-  @extensions = RegExp ".*\\.(" + options.extensions + ")$", "i"
-  @
+  start: (paths) ->
+    paths = [ paths ] if isType paths, String
+    assertType paths, Array
+    @_loadPaths paths
+    .then (specs) =>
 
-define ->
+      if specs.length is 0
+        log.moat 1
+        log.red "Error: "
+        log.white "No tests were found."
+        log.moat 1
+        process.exit()
 
-  @options = writable: no, configurable: no
+      specs.sort (a, b) ->
+        a.localeCompare b
 
-  @ module, exports: Runner
+      sync.each specs, (spec) ->
 
-  @ Runner.prototype,
+        assertType spec, String
 
-    start: (paths) ->
+        delete require.cache[spec]
 
-      if isType paths, String
-        paths = [paths]
+        pwd = process.cwd()
 
-      if !isKind paths, Array
-        throw TypeError "'paths' must be an Array or String"
+        process.chdir Path.dirname spec
 
-      loadSpecPaths paths
+        log.moat 1
+        log.yellow "Loading test: "
+        log.white Path.relative lotus.path, spec
+        log.moat 1
 
-      .then (specs) =>
+        module.optional spec, (error) ->
+          log.moat 1
+          log.red "Failed to load test: "
+          log.white spec
+          log.moat 1
+          throw error
 
-        if specs.length is 0
-          throw Error "No specs were found."
+        process.chdir pwd
 
-        specs.sort (a, b) ->
-          a.localeCompare b
+      async.try =>
+        @suite.start()
 
-        sync.each specs, (spec) ->
+  _initSuite: (modulePath) ->
+    suite = module.optional modulePath
+    if suite
+      suite.entry = lotus.resolve suite.path
+      return suite
+    log.moat 1
+    log.red "Unknown suite: "
+    log.white modulePath
+    log.moat 1
+    process.exit()
 
-          delete require.cache[spec]
+  _initReporter: (modulePath) ->
+    return unless modulePath
+    reporter = module.optional modulePath
+    return reporter if reporter
+    log.moat 1
+    log.red "Unknown reporter: "
+    log.white modulePath
+    log.moat 1
+    process.exit()
 
-          pwd = process.cwd()
+  _initExtensions: (extensions) ->
+    extensions = extensions.join "|" if isType extensions, Array
+    return RegExp ".*\\.(#{extensions})$", "i"
 
-          process.chdir dirname spec
+  _loadPaths: (paths) ->
+    assertType paths, Array
+    specs = []
+    async.all sync.map paths, (path, index) =>
+      path = @_resolve path, index
+      @_loadSpecs path, specs
+    .then ->
+      specs
 
-          log.it "Loading spec: " + spec
+  _resolve: (path, index) ->
+    assertType path, String
+    unless Path.isAbsolute path
+      parent = if path[0] is "." then process.cwd() else lotus.path
+      path = Path.resolve parent, path + "/js/spec"
+    path
 
-          module.optional spec, (error) ->
-            log.origin "lotus-runner"
-            log "Failed while loading a spec: "
-            log.red spec
-            log.moat 1
-            throw error
-
-          process.chdir pwd
-
-        global.log = log
-
-        async.try =>
-
-          @suite.start()
-
-loadSpecPaths = (paths) ->
-
-  async.reduce paths, [], (specs, path) ->
-
-    if !isType path, String
-      async.throw
-        error: TypeError "'path' should be a String."
-        format: repl: { path }
-
-    path = resolve path
+  _loadSpecs: (path, specs) ->
 
     async.isDir path
-
     .then (isDir) ->
-
       unless isDir
         specs.push path
-        async.throw fatal: no
+        return
 
       async.readDir path
-
       .then (files) ->
-
-        async.each files, (file) ->
-
-          spec = join path, file
-
-          # BUG: The asynchronous version never finishes here. [6/2/15]
-          isFile = sync.isFile spec
-
-          specs.push spec if isFile
-
-          return
-
-    .fail async.catch
-
-    .then -> specs
+        for file in files
+          spec = Path.join path, file
+          if sync.isFile spec
+            specs.push spec
+        return

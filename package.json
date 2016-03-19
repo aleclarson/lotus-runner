@@ -9,6 +9,7 @@
     "url": "https://github.com/aleclarson/lotus-runner.git"
   },
   "dependencies": {
+    "benchmark": "^2.1.0",
     "combine": "aleclarson/combine#1.0.0",
     "define": "aleclarson/define#1.0.0",
     "escape-string-regexp": "^1.0.3",
