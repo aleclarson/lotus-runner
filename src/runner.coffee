@@ -2,9 +2,14 @@
 # TODO: Prefer module-specific suites and reporters over the globally installed versions.
 #       Use the versions provided by 'lotus-runner/node_modules' when not even a global install exists.
 
+Benchmark = require "benchmark"
 Factory = require "factory"
 combine = require "combine"
+asyncFs = require "io/async"
+syncFs = require "io/sync"
 Path = require "path"
+sync = require "sync"
+Q = require "q"
 
 module.exports =
 Runner = Factory "Runner",
@@ -28,8 +33,9 @@ Runner = Factory "Runner",
 
   init: (options) ->
 
-    if options.bench
-      global.Benchmark = require "benchmark"
+    global.Benchmark =
+      if options.bench then Benchmark
+      else null
 
     @suite.load { @reporter }
 
@@ -73,8 +79,7 @@ Runner = Factory "Runner",
 
         process.chdir pwd
 
-      async.try =>
-        @suite.start()
+      @suite.start()
 
   _initSuite: (modulePath) ->
     suite = module.optional modulePath
@@ -99,12 +104,12 @@ Runner = Factory "Runner",
 
   _initExtensions: (extensions) ->
     extensions = extensions.join "|" if isType extensions, Array
-    return RegExp ".*\\.(#{extensions})$", "i"
+    return RegExp ".*\\.(" + extensions + ")$", "i"
 
   _loadPaths: (paths) ->
     assertType paths, Array
     specs = []
-    async.all sync.map paths, (path, index) =>
+    Q.all sync.map paths, (path, index) =>
       path = @_resolve path, index
       @_loadSpecs path, specs
     .then ->
@@ -119,16 +124,16 @@ Runner = Factory "Runner",
 
   _loadSpecs: (path, specs) ->
 
-    async.isDir path
+    asyncFs.isDir path
     .then (isDir) ->
       unless isDir
         specs.push path
         return
 
-      async.readDir path
+      asyncFs.readDir path
       .then (files) ->
         for file in files
           spec = Path.join path, file
-          if sync.isFile spec
+          if syncFs.isFile spec
             specs.push spec
         return

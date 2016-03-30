@@ -1,7 +1,5 @@
 var Runner, bench, combine, minimist, options, parseBool, runner, specs, steal, validOptions;
 
-require("lotus-require");
-
 parseBool = require("parse-bool");
 
 minimist = require("minimist");

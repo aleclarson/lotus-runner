@@ -1,10 +1,20 @@
-var Factory, Path, Runner, combine;
+var Benchmark, Factory, Path, Q, Runner, asyncFs, combine, sync, syncFs;
+
+Benchmark = require("benchmark");
 
 Factory = require("factory");
 
 combine = require("combine");
 
+asyncFs = require("io/async");
+
+syncFs = require("io/sync");
+
 Path = require("path");
+
+sync = require("sync");
+
+Q = require("q");
 
 module.exports = Runner = Factory("Runner", {
   optionTypes: {
@@ -27,9 +37,7 @@ module.exports = Runner = Factory("Runner", {
     };
   },
   init: function(options) {
-    if (options.bench) {
-      global.Benchmark = require("benchmark");
-    }
+    global.Benchmark = options.bench ? Benchmark : null;
     return this.suite.load({
       reporter: this.reporter
     });
@@ -70,9 +78,7 @@ module.exports = Runner = Factory("Runner", {
           });
           return process.chdir(pwd);
         });
-        return async["try"](function() {
-          return _this.suite.start();
-        });
+        return _this.suite.start();
       };
     })(this));
   },
@@ -114,7 +120,7 @@ module.exports = Runner = Factory("Runner", {
     var specs;
     assertType(paths, Array);
     specs = [];
-    return async.all(sync.map(paths, (function(_this) {
+    return Q.all(sync.map(paths, (function(_this) {
       return function(path, index) {
         path = _this._resolve(path, index);
         return _this._loadSpecs(path, specs);
@@ -133,17 +139,17 @@ module.exports = Runner = Factory("Runner", {
     return path;
   },
   _loadSpecs: function(path, specs) {
-    return async.isDir(path).then(function(isDir) {
+    return asyncFs.isDir(path).then(function(isDir) {
       if (!isDir) {
         specs.push(path);
         return;
       }
-      return async.readDir(path).then(function(files) {
+      return asyncFs.readDir(path).then(function(files) {
         var file, i, len, spec;
         for (i = 0, len = files.length; i < len; i++) {
           file = files[i];
           spec = Path.join(path, file);
-          if (sync.isFile(spec)) {
+          if (syncFs.isFile(spec)) {
             specs.push(spec);
           }
         }

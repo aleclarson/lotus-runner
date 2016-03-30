@@ -1,6 +1,4 @@
 
-require "lotus-require"
-
 parseBool = require "parse-bool"
 minimist = require "minimist"
 combine = require "combine"
