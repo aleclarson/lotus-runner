@@ -1,4 +1,4 @@
-var Benchmark, Factory, Path, Q, Runner, asyncFs, combine, sync, syncFs;
+var Benchmark, Factory, Path, Runner, asyncFs, combine, sync, syncFs;
 
 Benchmark = require("benchmark");
 
@@ -13,8 +13,6 @@ syncFs = require("io/sync");
 Path = require("path");
 
 sync = require("sync");
-
-Q = require("q");
 
 module.exports = Runner = Factory("Runner", {
   optionTypes: {
@@ -36,51 +34,39 @@ module.exports = Runner = Factory("Runner", {
       extensions: this._initExtensions(options.extensions)
     };
   },
+  initValues: function(options) {
+    return {
+      _specPath: options.specPath
+    };
+  },
   init: function(options) {
     global.Benchmark = options.bench ? Benchmark : null;
     return this.suite.load({
       reporter: this.reporter
     });
   },
-  start: function(paths) {
-    if (isType(paths, String)) {
-      paths = [paths];
-    }
-    assertType(paths, Array);
-    return this._loadPaths(paths).then((function(_this) {
-      return function(specs) {
-        if (specs.length === 0) {
-          log.moat(1);
-          log.red("Error: ");
-          log.white("No tests were found.");
-          log.moat(1);
-          process.exit();
-        }
-        specs.sort(function(a, b) {
-          return a.localeCompare(b);
-        });
-        sync.each(specs, function(spec) {
-          var pwd;
-          assertType(spec, String);
-          delete require.cache[spec];
-          pwd = process.cwd();
-          process.chdir(Path.dirname(spec));
-          log.moat(1);
-          log.yellow("Loading test: ");
-          log.white(Path.relative(lotus.path, spec));
-          log.moat(1);
-          module.optional(spec, function(error) {
-            log.moat(1);
-            log.red("Failed to load test: ");
-            log.white(spec);
-            log.moat(1);
-            throw error;
-          });
-          return process.chdir(pwd);
-        });
-        return _this.suite.start();
-      };
-    })(this));
+  start: function(specs) {
+    assertType(specs, Array);
+    specs.sort(function(a, b) {
+      return a.localeCompare(b);
+    });
+    sync.each(specs, function(spec) {
+      assertType(spec, String);
+      assert(Path.isAbsolute(spec), "Spec path must be absolute!");
+      delete require.cache[spec];
+      log.moat(1);
+      log.white("test ");
+      log.cyan(Path.relative(lotus.path, spec));
+      log.moat(1);
+      return module.optional(spec, function(error) {
+        log.moat(1);
+        log.red("Failed to load test: ");
+        log.white(spec);
+        log.moat(1);
+        throw error;
+      });
+    });
+    return this.suite.start();
   },
   _initSuite: function(modulePath) {
     var suite;
@@ -134,7 +120,7 @@ module.exports = Runner = Factory("Runner", {
     assertType(path, String);
     if (!Path.isAbsolute(path)) {
       parent = path[0] === "." ? process.cwd() : lotus.path;
-      path = Path.resolve(parent, path + "/js/spec");
+      path = Path.resolve(parent, Path.join(path, this._specDir));
     }
     return path;
   },

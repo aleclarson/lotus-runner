@@ -1,14 +1,12 @@
-var Path, Runner, WeakMap, callFunction, combine, gatherAffectedSpecs, has, initFiles, mm, optionDefaults, runAffectedSpecs, runSpec, watchFiles;
+var Path, Runner, WeakMap, callFunction, clearRequire, combine, initFiles, optionDefaults, runSpec;
+
+clearRequire = require("clear-require");
 
 WeakMap = require("weak-map");
 
 combine = require("combine");
 
 Path = require("path");
-
-has = require("has");
-
-mm = require("minimatch");
 
 Runner = require("./runner");
 
@@ -24,38 +22,21 @@ optionDefaults = {
 };
 
 module.exports = function(module, options) {
-  var specWatcher, srcWatcher;
+  var crawlingSpec, crawlingSrc;
   options = combine({}, optionDefaults, options);
-  specWatcher = watchFiles(module, options.spec, (function(_this) {
-    return function(file, event) {
-      if (event === "unlink") {
-        return;
-      }
-      return runSpec(file, options);
-    };
-  })(this)).then((function(_this) {
-    return function(files) {
-      return initFiles("spec", files);
-    };
-  })(this));
-  srcWatcher = watchFiles(module, options.src, (function(_this) {
-    return function(file, event) {
-      if (event === "unlink") {
-        return;
-      }
-      return runAffectedSpecs(file, options);
-    };
-  })(this)).then((function(_this) {
-    return function(files) {
-      return initFiles("src", files);
-    };
-  })(this));
-  return Q.all([specWatcher, srcWatcher]);
-};
-
-watchFiles = function(module, pattern, eventHandler) {
-  lotus.Module.watch(module.path + "/" + pattern, eventHandler);
-  return module.crawl(pattern);
+  crawlingSpec = module.crawl(options.spec, function(file, event) {
+    if (event === "unlink") {
+      return;
+    }
+    clearRequire(file.path);
+    return runSpec(file, options);
+  }).then(function(files) {
+    return initFiles("spec", files);
+  });
+  crawlingSrc = module.crawl(options.src, function(file, event) {
+    return clearRequire(file.path);
+  });
+  return Q.all([crawlingSpec, crawlingSrc]);
 };
 
 initFiles = callFunction(function() {
@@ -68,68 +49,16 @@ initFiles = callFunction(function() {
     return Path.join(module.path, dir, name + ".coffee");
   };
   return function(dirname, files) {
-    return Q.all(sync.map(files, (function(_this) {
-      return function(file) {
-        file.dirname = dirname;
-        file.source = getSourcePath(file.path, file.module);
-        return file.load();
-      };
-    })(this)));
+    return Q.all(sync.map(files, function(file) {
+      file.dirname = dirname;
+      file.source = getSourcePath(file.path, file.module);
+      return file.load();
+    }));
   };
 });
 
 runSpec = function(file, options) {
-  return Runner(options).start(file.path).done();
+  return Runner(options).start([file.path]).done();
 };
-
-runAffectedSpecs = function(file, options) {
-  var specs;
-  specs = gatherAffectedSpecs(file);
-  if (specs.length === 0) {
-    return;
-  }
-  return Q.all(sync.map(specs, function(spec) {
-    var runner;
-    log.moat(1);
-    log("Testing ");
-    log.yellow(Path.relative(lotus.path, spec));
-    log.moat(1);
-    runner = Runner(options);
-    return runner.start(spec);
-  })).done();
-};
-
-gatherAffectedSpecs = callFunction(function() {
-  var gather;
-  gather = function(file, specs, memory) {
-    return sync.each(file.dependers, function(file) {
-      if (memory.map.has(file)) {
-        return;
-      }
-      memory.map.set(file, true);
-      memory.array.push(file);
-      if (file.dirname === "spec") {
-        return specs.push(file.path);
-      } else {
-        return gather(file, specs, memory);
-      }
-    });
-  };
-  return function(file, specs) {
-    var memory;
-    if (specs == null) {
-      specs = [];
-    }
-    memory = {
-      array: [],
-      map: WeakMap()
-    };
-    gather(file, specs, memory);
-    sync.each(memory.array, function(file) {
-      return memory.map.remove(file);
-    });
-    return specs;
-  };
-});
 
 //# sourceMappingURL=../../map/src/initModule.map

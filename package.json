@@ -2,7 +2,6 @@
   "name": "lotus-runner",
   "version": "1.0.0",
   "description": "A framework-agnostic test runner for Node.",
-  "prefersGlobal": true,
   "main": "./js/src/index",
   "repository": {
     "type": "git",
@@ -10,19 +9,15 @@
   },
   "dependencies": {
     "benchmark": "^2.1.0",
+    "clear-require": "^1.0.1",
     "combine": "aleclarson/combine#1.0.0",
     "define": "aleclarson/define#1.0.0",
-    "escape-string-regexp": "^1.0.3",
-    "gaze": "~0.5.1",
-    "has": "^1.0.1",
+    "factory": "aleclarson/factory#1.0.0",
+    "globby": "aleclarson/globby#4.0.0",
     "io": "aleclarson/io#1.0.0",
-    "lotus-log": "aleclarson/lotus-log#1.0.0",
-    "lotus-require": "aleclarson/lotus-require#1.0.0",
-    "minimatch": "^2.0.8",
-    "minimist": "~0.0.8",
-    "named-function": "aleclarson/named-function#1.0.3",
+    "parse-bool": "aleclarson/parse-bool#0.0.1",
+    "sync": "aleclarson/sync#1.0.0",
     "type-utils": "aleclarson/type-utils#1.0.0",
-    "walkdir": "0.0.9",
     "weak-map": "aleclarson/weak-map#1.0.1"
   },
   "devDependencies": {

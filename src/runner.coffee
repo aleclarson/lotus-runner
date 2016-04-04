@@ -9,7 +9,6 @@ asyncFs = require "io/async"
 syncFs = require "io/sync"
 Path = require "path"
 sync = require "sync"
-Q = require "q"
 
 module.exports =
 Runner = Factory "Runner",
@@ -27,9 +26,16 @@ Runner = Factory "Runner",
     bench: no
 
   initFrozenValues: (options) ->
+
     suite: @_initSuite options.suite
+
     reporter: @_initReporter options.reporter
+
     extensions: @_initExtensions options.extensions
+
+  initValues: (options) ->
+
+    _specPath: options.specPath
 
   init: (options) ->
 
@@ -39,47 +45,34 @@ Runner = Factory "Runner",
 
     @suite.load { @reporter }
 
-  start: (paths) ->
-    paths = [ paths ] if isType paths, String
-    assertType paths, Array
-    @_loadPaths paths
-    .then (specs) =>
+  start: (specs) ->
 
-      if specs.length is 0
+    assertType specs, Array
+
+    specs.sort (a, b) ->
+      a.localeCompare b
+
+    sync.each specs, (spec) ->
+
+      assertType spec, String
+
+      assert Path.isAbsolute(spec), "Spec path must be absolute!"
+
+      delete require.cache[spec]
+
+      log.moat 1
+      log.white "test "
+      log.cyan Path.relative lotus.path, spec
+      log.moat 1
+
+      module.optional spec, (error) ->
         log.moat 1
-        log.red "Error: "
-        log.white "No tests were found."
+        log.red "Failed to load test: "
+        log.white spec
         log.moat 1
-        process.exit()
+        throw error
 
-      specs.sort (a, b) ->
-        a.localeCompare b
-
-      sync.each specs, (spec) ->
-
-        assertType spec, String
-
-        delete require.cache[spec]
-
-        pwd = process.cwd()
-
-        process.chdir Path.dirname spec
-
-        log.moat 1
-        log.yellow "Loading test: "
-        log.white Path.relative lotus.path, spec
-        log.moat 1
-
-        module.optional spec, (error) ->
-          log.moat 1
-          log.red "Failed to load test: "
-          log.white spec
-          log.moat 1
-          throw error
-
-        process.chdir pwd
-
-      @suite.start()
+    @suite.start()
 
   _initSuite: (modulePath) ->
     suite = module.optional modulePath
@@ -119,7 +112,7 @@ Runner = Factory "Runner",
     assertType path, String
     unless Path.isAbsolute path
       parent = if path[0] is "." then process.cwd() else lotus.path
-      path = Path.resolve parent, path + "/js/spec"
+      path = Path.resolve parent, Path.join path, @_specDir
     path
 
   _loadSpecs: (path, specs) ->
