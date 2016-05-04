@@ -1,6 +1,5 @@
 
 parseBool = require "parse-bool"
-combine = require "combine"
 syncFs = require "io/sync"
 globby = require "globby"
 Path = require "path"

@@ -34,6 +34,9 @@ module.exports = function(module, options) {
     return initFiles("spec", files);
   });
   crawlingSrc = module.crawl(options.src, function(file, event) {
+    if (event === "unlink") {
+      return;
+    }
     return clearRequire(file.path);
   });
   return Q.all([crawlingSpec, crawlingSrc]);

@@ -27,8 +27,8 @@ module.exports = (module, options) ->
     initFiles "spec", files
 
   crawlingSrc = module.crawl options.src, (file, event) ->
+    return if event is "unlink"
     clearRequire file.path
-    # return if event is "unlink"
     # runAffectedSpecs file, options
 
   # .then (files) =>

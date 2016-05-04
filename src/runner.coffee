@@ -2,48 +2,61 @@
 # TODO: Prefer module-specific suites and reporters over the globally installed versions.
 #       Use the versions provided by 'lotus-runner/node_modules' when not even a global install exists.
 
+{ assert, assertType, isType } = require "type-utils"
+
 Benchmark = require "benchmark"
-Factory = require "factory"
-combine = require "combine"
 asyncFs = require "io/async"
 syncFs = require "io/sync"
+Type = require "Type"
 Path = require "path"
 sync = require "sync"
+Q = require "q"
 
-module.exports =
-Runner = Factory "Runner",
+type = Type "Runner"
 
-  optionTypes:
-    suite: String
-    reporter: [ String, Void ]
-    extensions: [ String, Array ]
-    bench: Boolean
+type.optionTypes =
+  suite: String
+  reporter: String.Maybe
+  extensions: [ String, Array ]
+  bench: Boolean
 
-  optionDefaults:
-    suite: "lotus-jasmine"
-    reporter: "lotus-jasmine/reporter"
-    extensions: "js"
-    bench: no
+type.optionDefaults =
+  suite: "lotus-jasmine"
+  reporter: "lotus-jasmine/reporter"
+  extensions: "js"
+  bench: no
 
-  initFrozenValues: (options) ->
+type.defineFrozenValues
 
-    suite: @_initSuite options.suite
+  suite: (options) ->
+    suite = module.optional options.suite
+    assert suite, { options, reason: "Failed to load suite!" }
+    suite.entry = lotus.resolve suite.path
+    return suite
 
-    reporter: @_initReporter options.reporter
+  reporter: (options) ->
+    return unless options.reporter
+    reporter = module.optional options.reporter
+    assert reporter, { options, reason: "Failed to load reporter!" }
+    return reporter
 
-    extensions: @_initExtensions options.extensions
+  extensions: ({ extensions }) ->
+    extensions = extensions.join "|" if isType extensions, Array
+    return RegExp ".*\\.(" + extensions + ")$", "i"
 
-  initValues: (options) ->
+type.defineValues
 
-    _specPath: options.specPath
+  _specPath: (options) -> options.specPath
 
-  init: (options) ->
+type.initInstance (options) ->
 
-    global.Benchmark =
-      if options.bench then Benchmark
-      else null
+  global.Benchmark =
+    if options.bench then Benchmark
+    else null
 
-    @suite.load { @reporter }
+  @suite.load { @reporter }
+
+type.defineMethods
 
   start: (specs) ->
 
@@ -73,31 +86,6 @@ Runner = Factory "Runner",
         throw error
 
     @suite.start()
-
-  _initSuite: (modulePath) ->
-    suite = module.optional modulePath
-    if suite
-      suite.entry = lotus.resolve suite.path
-      return suite
-    log.moat 1
-    log.red "Unknown suite: "
-    log.white modulePath
-    log.moat 1
-    process.exit()
-
-  _initReporter: (modulePath) ->
-    return unless modulePath
-    reporter = module.optional modulePath
-    return reporter if reporter
-    log.moat 1
-    log.red "Unknown reporter: "
-    log.white modulePath
-    log.moat 1
-    process.exit()
-
-  _initExtensions: (extensions) ->
-    extensions = extensions.join "|" if isType extensions, Array
-    return RegExp ".*\\.(" + extensions + ")$", "i"
 
   _loadPaths: (paths) ->
     assertType paths, Array
@@ -130,3 +118,5 @@ Runner = Factory "Runner",
           if syncFs.isFile spec
             specs.push spec
         return
+
+module.exports = Runner = type.build()

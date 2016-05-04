@@ -1,8 +1,6 @@
-var Path, Runner, bench, combine, extensions, globby, parentDir, parseBool, ref, reporter, runner, specDir, specRegex, specs, suite, syncFs, tryToReadDir;
+var Path, Runner, bench, extensions, globby, parentDir, parseBool, ref, reporter, runner, specDir, specRegex, specs, suite, syncFs, tryToReadDir;
 
 parseBool = require("parse-bool");
-
-combine = require("combine");
 
 syncFs = require("io/sync");
 

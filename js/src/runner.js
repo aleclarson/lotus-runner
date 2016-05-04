@@ -1,50 +1,84 @@
-var Benchmark, Factory, Path, Runner, asyncFs, combine, sync, syncFs;
+var Benchmark, Path, Q, Runner, Type, assert, assertType, asyncFs, isType, ref, sync, syncFs, type;
+
+ref = require("type-utils"), assert = ref.assert, assertType = ref.assertType, isType = ref.isType;
 
 Benchmark = require("benchmark");
-
-Factory = require("factory");
-
-combine = require("combine");
 
 asyncFs = require("io/async");
 
 syncFs = require("io/sync");
 
+Type = require("Type");
+
 Path = require("path");
 
 sync = require("sync");
 
-module.exports = Runner = Factory("Runner", {
-  optionTypes: {
-    suite: String,
-    reporter: [String, Void],
-    extensions: [String, Array],
-    bench: Boolean
-  },
-  optionDefaults: {
-    suite: "lotus-jasmine",
-    reporter: "lotus-jasmine/reporter",
-    extensions: "js",
-    bench: false
-  },
-  initFrozenValues: function(options) {
-    return {
-      suite: this._initSuite(options.suite),
-      reporter: this._initReporter(options.reporter),
-      extensions: this._initExtensions(options.extensions)
-    };
-  },
-  initValues: function(options) {
-    return {
-      _specPath: options.specPath
-    };
-  },
-  init: function(options) {
-    global.Benchmark = options.bench ? Benchmark : null;
-    return this.suite.load({
-      reporter: this.reporter
+Q = require("q");
+
+type = Type("Runner");
+
+type.optionTypes = {
+  suite: String,
+  reporter: String.Maybe,
+  extensions: [String, Array],
+  bench: Boolean
+};
+
+type.optionDefaults = {
+  suite: "lotus-jasmine",
+  reporter: "lotus-jasmine/reporter",
+  extensions: "js",
+  bench: false
+};
+
+type.defineFrozenValues({
+  suite: function(options) {
+    var suite;
+    suite = module.optional(options.suite);
+    assert(suite, {
+      options: options,
+      reason: "Failed to load suite!"
     });
+    suite.entry = lotus.resolve(suite.path);
+    return suite;
   },
+  reporter: function(options) {
+    var reporter;
+    if (!options.reporter) {
+      return;
+    }
+    reporter = module.optional(options.reporter);
+    assert(reporter, {
+      options: options,
+      reason: "Failed to load reporter!"
+    });
+    return reporter;
+  },
+  extensions: function(arg) {
+    var extensions;
+    extensions = arg.extensions;
+    if (isType(extensions, Array)) {
+      extensions = extensions.join("|");
+    }
+    return RegExp(".*\\.(" + extensions + ")$", "i");
+  }
+});
+
+type.defineValues({
+  _specPath: function(options) {
+    return options.specPath;
+  }
+});
+
+type.initInstance(function(options) {
+  global.Benchmark = options.bench ? Benchmark : null;
+  return this.suite.load({
+    reporter: this.reporter
+  });
+});
+
+type.defineMethods({
   start: function(specs) {
     assertType(specs, Array);
     specs.sort(function(a, b) {
@@ -67,40 +101,6 @@ module.exports = Runner = Factory("Runner", {
       });
     });
     return this.suite.start();
-  },
-  _initSuite: function(modulePath) {
-    var suite;
-    suite = module.optional(modulePath);
-    if (suite) {
-      suite.entry = lotus.resolve(suite.path);
-      return suite;
-    }
-    log.moat(1);
-    log.red("Unknown suite: ");
-    log.white(modulePath);
-    log.moat(1);
-    return process.exit();
-  },
-  _initReporter: function(modulePath) {
-    var reporter;
-    if (!modulePath) {
-      return;
-    }
-    reporter = module.optional(modulePath);
-    if (reporter) {
-      return reporter;
-    }
-    log.moat(1);
-    log.red("Unknown reporter: ");
-    log.white(modulePath);
-    log.moat(1);
-    return process.exit();
-  },
-  _initExtensions: function(extensions) {
-    if (isType(extensions, Array)) {
-      extensions = extensions.join("|");
-    }
-    return RegExp(".*\\.(" + extensions + ")$", "i");
   },
   _loadPaths: function(paths) {
     var specs;
@@ -143,5 +143,7 @@ module.exports = Runner = Factory("Runner", {
     });
   }
 });
+
+module.exports = Runner = type.build();
 
 //# sourceMappingURL=../../map/src/runner.map
