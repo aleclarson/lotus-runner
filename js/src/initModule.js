@@ -1,4 +1,4 @@
-var Path, Runner, WeakMap, callFunction, clearRequire, combine, initFiles, optionDefaults, runSpec;
+var Path, Runner, WeakMap, clearRequire, combine, getSourcePath, initFiles, optionDefaults, runSpec;
 
 clearRequire = require("clear-require");
 
@@ -9,10 +9,6 @@ combine = require("combine");
 Path = require("path");
 
 Runner = require("./runner");
-
-callFunction = function(fn) {
-  return fn();
-};
 
 optionDefaults = {
   src: "js/src/**/*.js",
@@ -42,23 +38,20 @@ module.exports = function(module, options) {
   return Q.all([crawlingSpec, crawlingSrc]);
 };
 
-initFiles = callFunction(function() {
-  var getSourcePath;
-  getSourcePath = function(path, module) {
-    var dir, ext, name;
-    ext = Path.extname(path);
-    name = Path.basename(path, ext);
-    dir = Path.basename(Path.dirname(path));
-    return Path.join(module.path, dir, name + ".coffee");
-  };
-  return function(dirname, files) {
-    return Q.all(sync.map(files, function(file) {
-      file.dirname = dirname;
-      file.source = getSourcePath(file.path, file.module);
-      return file.load();
-    }));
-  };
-});
+getSourcePath = function(path, module) {
+  var dir, ext, name;
+  ext = Path.extname(path);
+  name = Path.basename(path, ext);
+  dir = Path.basename(Path.dirname(path));
+  return Path.join(module.path, dir, name + ".coffee");
+};
+
+initFiles = function(dirname, files) {
+  return Q.all(sync.map(files, function(file) {
+    file.dirname = dirname;
+    return file.source = getSourcePath(file.path, file.module);
+  }));
+};
 
 runSpec = function(file, options) {
   return Runner(options).start([file.path]).done();
