@@ -6,14 +6,11 @@
     "Type": "aleclarson/Type#1.0.0",
     "benchmark": "^2.1.0",
     "clear-require": "^1.0.1",
-    "combine": "aleclarson/combine#1.0.0",
-    "define": "aleclarson/define#1.0.0",
     "globby": "aleclarson/globby#4.0.0",
     "io": "aleclarson/io#1.0.0",
-    "parse-bool": "aleclarson/parse-bool#0.0.1",
     "sync": "aleclarson/sync#1.0.0",
     "type-utils": "aleclarson/type-utils#1.0.0",
-    "weak-map": "aleclarson/weak-map#1.0.1"
+    "q": "aleclarson/q#1.0.0"
   },
   "lotus": {
     "plugins": [

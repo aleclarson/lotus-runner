@@ -40,7 +40,6 @@ type.defineFrozenValues({
       options: options,
       reason: "Failed to load suite!"
     });
-    suite.entry = lotus.resolve(suite.path);
     return suite;
   },
   reporter: function(options) {

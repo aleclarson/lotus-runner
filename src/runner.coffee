@@ -31,7 +31,6 @@ type.defineFrozenValues
   suite: (options) ->
     suite = module.optional options.suite
     assert suite, { options, reason: "Failed to load suite!" }
-    suite.entry = lotus.resolve suite.path
     return suite
 
   reporter: (options) ->

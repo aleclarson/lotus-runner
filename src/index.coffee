@@ -1,6 +1,11 @@
 
-module.exports = ->
+exports.globalDependencies = [
+  "lotus-watch"
+]
 
-  @commands.test = -> require "./cli"
+exports.initCommands = ->
 
-  initModule: -> require "./initModule"
+  test: -> require "./cli"
+
+exports.initModule = ->
+  require "./initModule"
