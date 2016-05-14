@@ -4,17 +4,22 @@
   "main": "js/src/index",
   "dependencies": {
     "Type": "aleclarson/Type#1.0.0",
+    "assert": "aleclarson/assert#1.0.0",
+    "assertType": "aleclarson/assertType#1.0.0",
     "benchmark": "^2.1.0",
     "clear-require": "^1.0.1",
     "globby": "aleclarson/globby#4.0.0",
     "io": "aleclarson/io#1.0.0",
-    "sync": "aleclarson/sync#1.0.0",
-    "type-utils": "aleclarson/type-utils#1.0.0",
-    "q": "aleclarson/q#1.0.0"
+    "isType": "aleclarson/isType#1.0.0",
+    "q": "aleclarson/q#1.0.0",
+    "sync": "aleclarson/sync#1.0.0"
   },
   "lotus": {
     "plugins": [
       "lotus-coffee"
+    ],
+    "implicitDependencies": [
+      "path"
     ]
   },
   "repository": {

@@ -2,11 +2,12 @@
 # TODO: Prefer module-specific suites and reporters over the globally installed versions.
 #       Use the versions provided by 'lotus-runner/node_modules' when not even a global install exists.
 
-{ assert, assertType, isType } = require "type-utils"
-
+assertType = require "assertType"
 Benchmark = require "benchmark"
 asyncFs = require "io/async"
 syncFs = require "io/sync"
+isType = require "isType"
+assert = require "assert"
 Type = require "Type"
 Path = require "path"
 sync = require "sync"
@@ -71,11 +72,6 @@ type.defineMethods
       assert Path.isAbsolute(spec), "Spec path must be absolute!"
 
       delete require.cache[spec]
-
-      log.moat 1
-      log.white "test "
-      log.cyan Path.relative lotus.path, spec
-      log.moat 1
 
       module.optional spec, (error) ->
         log.moat 1

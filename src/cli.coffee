@@ -56,4 +56,5 @@ module.exports = (options) ->
 
   runner
     .start specs
+    .then -> process.exit()
     .done()

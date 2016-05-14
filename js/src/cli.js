@@ -69,7 +69,9 @@ module.exports = function(options) {
     reporter: reporter,
     extensions: extensions
   });
-  return runner.start(specs).done();
+  return runner.start(specs).then(function() {
+    return process.exit();
+  }).done();
 };
 
 //# sourceMappingURL=../../map/src/cli.map

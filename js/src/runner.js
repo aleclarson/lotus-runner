@@ -1,12 +1,16 @@
-var Benchmark, Path, Q, Runner, Type, assert, assertType, asyncFs, isType, ref, sync, syncFs, type;
+var Benchmark, Path, Q, Runner, Type, assert, assertType, asyncFs, isType, sync, syncFs, type;
 
-ref = require("type-utils"), assert = ref.assert, assertType = ref.assertType, isType = ref.isType;
+assertType = require("assertType");
 
 Benchmark = require("benchmark");
 
 asyncFs = require("io/async");
 
 syncFs = require("io/sync");
+
+isType = require("isType");
+
+assert = require("assert");
 
 Type = require("Type");
 
@@ -87,10 +91,6 @@ type.defineMethods({
       assertType(spec, String);
       assert(Path.isAbsolute(spec), "Spec path must be absolute!");
       delete require.cache[spec];
-      log.moat(1);
-      log.white("test ");
-      log.cyan(Path.relative(lotus.path, spec));
-      log.moat(1);
       return module.optional(spec, function(error) {
         log.moat(1);
         log.red("Failed to load test: ");

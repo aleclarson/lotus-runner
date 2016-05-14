@@ -33,7 +33,9 @@ watchSpecs = function(mod, options) {
   var pattern;
   pattern = mod.specDest + "/**/*.js";
   return mod.watch(pattern, {
-    change: specListeners.change.bind(options)
+    change: function(file) {
+      return specListeners.change(file, options);
+    }
   });
 };
 
@@ -46,9 +48,9 @@ watchSrc = function(mod) {
 };
 
 specListeners = {
-  change: function(file) {
+  change: function(file, options) {
     clearRequire(file.path);
-    return Runner(this).start([file.path]).done();
+    return Runner(options).start([file.path]).done();
   }
 };
 

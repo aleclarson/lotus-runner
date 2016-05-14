@@ -30,8 +30,8 @@ module.exports = (mod, options) ->
 
 watchSpecs = (mod, options) ->
   pattern = mod.specDest + "/**/*.js"
-  mod.watch pattern,
-    change: specListeners.change.bind options
+  mod.watch pattern, change: (file) ->
+    specListeners.change file, options
 
 watchSrc = (mod) ->
   patterns = []
@@ -41,9 +41,9 @@ watchSrc = (mod) ->
 
 specListeners =
 
-  change: (file) ->
+  change: (file, options) ->
     clearRequire file.path
-    Runner this
+    Runner options
       .start [ file.path ]
       .done()
 
