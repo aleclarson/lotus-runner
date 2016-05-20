@@ -2,6 +2,7 @@
 syncFs = require "io/sync"
 globby = require "globby"
 Path = require "path"
+log = require "log"
 
 Runner = require "./runner"
 
@@ -27,14 +28,16 @@ module.exports = (options) ->
     specs = tryToReadDir specDir + "/js/spec"
     specs = tryToReadDir specDir + "/spec" unless specs
     specs = tryToReadDir specDir unless specs
+
   else if syncFs.isFile specDir
     specs = [ specDir ]
+
   else
     log.moat 1
     log.red "Error: "
     log.white "'#{specDir}' does not exist!"
     log.moat 1
-    process.exit()
+    return
 
   specRegex = /\.js$/
   specs = specs.filter (spec) ->
@@ -45,7 +48,7 @@ module.exports = (options) ->
     log.red "Error: "
     log.white "No tests were found."
     log.moat 1
-    process.exit()
+    return
 
   runner = Runner {
     bench
@@ -54,7 +57,4 @@ module.exports = (options) ->
     extensions
   }
 
-  runner
-    .start specs
-    .then -> process.exit()
-    .done()
+  runner.start specs

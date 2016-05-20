@@ -1,6 +1,7 @@
 
 clearRequire = require "clear-require"
 Path = require "path"
+log = require "log"
 Q = require "q"
 
 Runner = require "./runner"

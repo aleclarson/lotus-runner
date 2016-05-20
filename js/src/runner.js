@@ -1,4 +1,4 @@
-var Benchmark, Path, Q, Runner, Type, assert, assertType, asyncFs, isType, sync, syncFs, type;
+var Benchmark, Path, Q, Runner, Type, assert, assertType, asyncFs, isType, log, sync, syncFs, type;
 
 assertType = require("assertType");
 
@@ -17,6 +17,8 @@ Type = require("Type");
 Path = require("path");
 
 sync = require("sync");
+
+log = require("log");
 
 Q = require("q");
 
@@ -39,7 +41,9 @@ type.optionDefaults = {
 type.defineFrozenValues({
   suite: function(options) {
     var suite;
-    suite = module.optional(options.suite);
+    try {
+      suite = require(options.suite);
+    } catch (error1) {}
     assert(suite, {
       options: options,
       reason: "Failed to load suite!"
@@ -51,7 +55,9 @@ type.defineFrozenValues({
     if (!options.reporter) {
       return;
     }
-    reporter = module.optional(options.reporter);
+    try {
+      reporter = require(options.reporter);
+    } catch (error1) {}
     assert(reporter, {
       options: options,
       reason: "Failed to load reporter!"
@@ -75,6 +81,7 @@ type.defineValues({
 });
 
 type.initInstance(function(options) {
+  global.emptyFunction = require("emptyFunction");
   global.Benchmark = options.bench ? Benchmark : null;
   return this.suite.load({
     reporter: this.reporter
@@ -88,16 +95,20 @@ type.defineMethods({
       return a.localeCompare(b);
     });
     sync.each(specs, function(spec) {
+      var error;
       assertType(spec, String);
       assert(Path.isAbsolute(spec), "Spec path must be absolute!");
       delete require.cache[spec];
-      return module.optional(spec, function(error) {
+      try {
+        return require(spec);
+      } catch (error1) {
+        error = error1;
         log.moat(1);
         log.red("Failed to load test: ");
         log.white(spec);
         log.moat(1);
         throw error;
-      });
+      }
     });
     return this.suite.start();
   },

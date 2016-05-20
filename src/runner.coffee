@@ -11,6 +11,7 @@ assert = require "assert"
 Type = require "Type"
 Path = require "path"
 sync = require "sync"
+log = require "log"
 Q = require "q"
 
 type = Type "Runner"
@@ -30,13 +31,13 @@ type.optionDefaults =
 type.defineFrozenValues
 
   suite: (options) ->
-    suite = module.optional options.suite
+    try suite = require options.suite
     assert suite, { options, reason: "Failed to load suite!" }
     return suite
 
   reporter: (options) ->
     return unless options.reporter
-    reporter = module.optional options.reporter
+    try reporter = require options.reporter
     assert reporter, { options, reason: "Failed to load reporter!" }
     return reporter
 
@@ -49,6 +50,8 @@ type.defineValues
   _specPath: (options) -> options.specPath
 
 type.initInstance (options) ->
+
+  global.emptyFunction = require "emptyFunction"
 
   global.Benchmark =
     if options.bench then Benchmark
@@ -73,7 +76,8 @@ type.defineMethods
 
       delete require.cache[spec]
 
-      module.optional spec, (error) ->
+      try require spec
+      catch error
         log.moat 1
         log.red "Failed to load test: "
         log.white spec

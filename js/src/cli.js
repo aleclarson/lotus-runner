@@ -1,10 +1,12 @@
-var Path, Runner, globby, syncFs;
+var Path, Runner, globby, log, syncFs;
 
 syncFs = require("io/sync");
 
 globby = require("globby");
 
 Path = require("path");
+
+log = require("log");
 
 Runner = require("./runner");
 
@@ -50,7 +52,7 @@ module.exports = function(options) {
     log.red("Error: ");
     log.white("'" + specDir + "' does not exist!");
     log.moat(1);
-    process.exit();
+    return;
   }
   specRegex = /\.js$/;
   specs = specs.filter(function(spec) {
@@ -61,7 +63,7 @@ module.exports = function(options) {
     log.red("Error: ");
     log.white("No tests were found.");
     log.moat(1);
-    process.exit();
+    return;
   }
   runner = Runner({
     bench: bench,
@@ -69,9 +71,7 @@ module.exports = function(options) {
     reporter: reporter,
     extensions: extensions
   });
-  return runner.start(specs).then(function() {
-    return process.exit();
-  }).done();
+  return runner.start(specs);
 };
 
 //# sourceMappingURL=../../map/src/cli.map

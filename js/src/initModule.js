@@ -1,8 +1,10 @@
-var Path, Q, Runner, clearRequire, specListeners, srcListeners, watchSpecs, watchSrc;
+var Path, Q, Runner, clearRequire, log, specListeners, srcListeners, watchSpecs, watchSrc;
 
 clearRequire = require("clear-require");
 
 Path = require("path");
+
+log = require("log");
 
 Q = require("q");
 
