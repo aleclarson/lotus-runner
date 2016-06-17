@@ -1,0 +1,34 @@
+{
+  "name": "lotus-runner",
+  "version": "1.0.0",
+  "main": "js/src/index",
+  "dependencies": {
+    "Promise": "aleclarson/Promise#1.0.0",
+    "Type": "aleclarson/Type#1.0.0",
+    "assert": "aleclarson/assert#1.0.0",
+    "assertType": "aleclarson/assertType#1.0.0",
+    "benchmark": "^2.1.0",
+    "clear-require": "^1.0.1",
+    "emptyFunction": "aleclarson/emptyFunction#1.0.0",
+    "globby": "aleclarson/globby#4.0.0",
+    "io": "aleclarson/io#1.0.0",
+    "isType": "aleclarson/isType#1.0.0",
+    "log": "aleclarson/log#1.0.0",
+    "sync": "aleclarson/sync#1.0.0"
+  },
+  "lotus": {
+    "plugins": [
+      "lotus-coffee"
+    ],
+    "implicitDependencies": [
+      "path"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aleclarson/lotus-runner.git"
+  },
+  "licenses": [
+    "MIT"
+  ]
+}
