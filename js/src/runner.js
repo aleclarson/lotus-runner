@@ -1,8 +1,10 @@
-var Benchmark, Path, Q, Runner, Type, assert, assertType, asyncFs, isType, log, sync, syncFs, type;
+var Benchmark, Path, Promise, Runner, Type, assert, assertType, asyncFs, isType, log, sync, syncFs, type;
 
 assertType = require("assertType");
 
 Benchmark = require("benchmark");
+
+Promise = require("Promise");
 
 asyncFs = require("io/async");
 
@@ -19,8 +21,6 @@ Path = require("path");
 sync = require("sync");
 
 log = require("log");
-
-Q = require("q");
 
 type = Type("Runner");
 
@@ -116,12 +116,12 @@ type.defineMethods({
     var specs;
     assertType(paths, Array);
     specs = [];
-    return Q.all(sync.map(paths, (function(_this) {
+    return Promise.map(paths, (function(_this) {
       return function(path, index) {
         path = _this._resolve(path, index);
         return _this._loadSpecs(path, specs);
       };
-    })(this))).then(function() {
+    })(this)).then(function() {
       return specs;
     });
   },

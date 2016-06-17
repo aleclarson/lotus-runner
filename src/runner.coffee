@@ -4,6 +4,7 @@
 
 assertType = require "assertType"
 Benchmark = require "benchmark"
+Promise = require "Promise"
 asyncFs = require "io/async"
 syncFs = require "io/sync"
 isType = require "isType"
@@ -12,7 +13,6 @@ Type = require "Type"
 Path = require "path"
 sync = require "sync"
 log = require "log"
-Q = require "q"
 
 type = Type "Runner"
 
@@ -89,7 +89,7 @@ type.defineMethods
   _loadPaths: (paths) ->
     assertType paths, Array
     specs = []
-    Q.all sync.map paths, (path, index) =>
+    Promise.map paths, (path, index) =>
       path = @_resolve path, index
       @_loadSpecs path, specs
     .then ->

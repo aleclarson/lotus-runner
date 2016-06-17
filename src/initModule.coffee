@@ -1,8 +1,8 @@
 
 clearRequire = require "clear-require"
+Promise = require "Promise"
 Path = require "path"
 log = require "log"
-Q = require "q"
 
 Runner = require "./runner"
 
@@ -24,7 +24,7 @@ module.exports = (mod, options) ->
       log.moat 1
       return
 
-    return Q.all [
+    return Promise.all [
       watchSpecs mod, options
       watchSrc mod
     ]

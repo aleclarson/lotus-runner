@@ -1,12 +1,12 @@
-var Path, Q, Runner, clearRequire, log, specListeners, srcListeners, watchSpecs, watchSrc;
+var Path, Promise, Runner, clearRequire, log, specListeners, srcListeners, watchSpecs, watchSrc;
 
 clearRequire = require("clear-require");
+
+Promise = require("Promise");
 
 Path = require("path");
 
 log = require("log");
-
-Q = require("q");
 
 Runner = require("./runner");
 
@@ -27,7 +27,7 @@ module.exports = function(mod, options) {
       log.moat(1);
       return;
     }
-    return Q.all([watchSpecs(mod, options), watchSrc(mod)]);
+    return Promise.all([watchSpecs(mod, options), watchSrc(mod)]);
   });
 };
 

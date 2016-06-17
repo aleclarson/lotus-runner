@@ -9,3 +9,5 @@ exports.initCommands = ->
 
 exports.initModule = ->
   require "./initModule"
+
+# TODO: Run tests during 'build' phase.
