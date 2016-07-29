@@ -16,17 +16,10 @@ log = require "log"
 
 type = Type "Runner"
 
-type.optionTypes =
-  suite: String
-  reporter: String.Maybe
-  extensions: [ String, Array ]
-  bench: Boolean
-
-type.optionDefaults =
-  suite: "lotus-jasmine"
-  reporter: "lotus-jasmine/reporter"
-  extensions: "js"
-  bench: no
+type.defineOptions
+  suite: String.withDefault "lotus-jasmine" # TODO: Default to 'lotus-jest' instead!
+  reporter: String.withDefault "lotus-jasmine/reporter"
+  bench: Boolean.withDefault no
 
 type.defineFrozenValues
 
@@ -41,16 +34,9 @@ type.defineFrozenValues
     assert reporter, { options, reason: "Failed to load reporter!" }
     return reporter
 
-  extensions: ({ extensions }) ->
-    extensions = extensions.join "|" if isType extensions, Array
-    return RegExp ".*\\.(" + extensions + ")$", "i"
-
-type.defineValues
-
-  _specPath: (options) -> options.specPath
-
 type.initInstance (options) ->
 
+  # TODO: Maybe remove this? Use 'devDependencies' instead.
   global.emptyFunction = require "emptyFunction"
 
   global.Benchmark =

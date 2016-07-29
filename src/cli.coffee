@@ -1,60 +1,51 @@
 
-syncFs = require "io/sync"
-globby = require "globby"
-Path = require "path"
-log = require "log"
+assert = require "assert"
 
 Runner = require "./runner"
 
-module.exports = (options) ->
+module.exports = (args) ->
 
-  { bench, suite, reporter, extensions } = options
+  moduleName = args._.shift() or "."
 
-  bench ?= no
+  lotus.Module.load moduleName
 
-  specDir = options._.shift()
-  specDir ?= "."
+  .then (module) ->
 
-  unless Path.isAbsolute specDir
-    parentDir = if specDir[0] is "." then process.cwd() else lotus.path
-    specDir = Path.resolve parentDir, specDir
-
-  tryToReadDir = (dir) ->
-    return no unless syncFs.isDir dir
-    files = globby.sync "*.js", { cwd: dir, matchBase: yes }
-    files.map (path) -> Path.resolve dir, path
-
-  if syncFs.isDir specDir
-    specs = tryToReadDir specDir + "/js/spec"
-    specs = tryToReadDir specDir + "/spec" unless specs
-    specs = tryToReadDir specDir unless specs
-
-  else if syncFs.isFile specDir
-    specs = [ specDir ]
-
-  else
     log.moat 1
-    log.red "Error: "
-    log.white "'#{specDir}' does not exist!"
+    log.gray.dim "Testing: "
+    log.green lotus.relative module.path
     log.moat 1
-    return
 
-  specRegex = /\.js$/
-  specs = specs.filter (spec) ->
-    specRegex.test spec
+    module.load [ "config" ]
 
-  if specs.length is 0
-    log.moat 1
-    log.red "Error: "
-    log.white "No tests were found."
-    log.moat 1
-    return
+    .then ->
 
-  runner = Runner {
-    bench
-    suite
-    reporter
-    extensions
-  }
+      try module.spec ?= "spec"
 
-  runner.start specs
+      assert module.spec, "Module named '#{module.name}' must define its `spec`!"
+
+      # TODO: Make this more flexible.
+      needsCoffee = module.hasPlugin "lotus-coffee"
+
+      pattern = module.spec + "/**/*." + if needsCoffee then "coffee" else "js"
+
+      module.crawl pattern
+
+      .then (files) ->
+
+        if files.length is 0
+          log.moat 1
+          log.red "Error: "
+          log.white "No tests were found."
+          log.moat 1
+          return
+
+        if needsCoffee
+          require "coffee-script/register"
+
+        runner = Runner
+          bench: args.bench
+          suite: args.suite
+          reporter: args.reporter
+
+        runner.start files.map (file) -> file.path

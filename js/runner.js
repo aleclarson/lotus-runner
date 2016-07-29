@@ -24,19 +24,11 @@ log = require("log");
 
 type = Type("Runner");
 
-type.optionTypes = {
-  suite: String,
-  reporter: String.Maybe,
-  extensions: [String, Array],
-  bench: Boolean
-};
-
-type.optionDefaults = {
-  suite: "lotus-jasmine",
-  reporter: "lotus-jasmine/reporter",
-  extensions: "js",
-  bench: false
-};
+type.defineOptions({
+  suite: String.withDefault("lotus-jasmine"),
+  reporter: String.withDefault("lotus-jasmine/reporter"),
+  bench: Boolean.withDefault(false)
+});
 
 type.defineFrozenValues({
   suite: function(options) {
@@ -63,20 +55,6 @@ type.defineFrozenValues({
       reason: "Failed to load reporter!"
     });
     return reporter;
-  },
-  extensions: function(arg) {
-    var extensions;
-    extensions = arg.extensions;
-    if (isType(extensions, Array)) {
-      extensions = extensions.join("|");
-    }
-    return RegExp(".*\\.(" + extensions + ")$", "i");
-  }
-});
-
-type.defineValues({
-  _specPath: function(options) {
-    return options.specPath;
   }
 });
 
@@ -156,4 +134,4 @@ type.defineMethods({
 
 module.exports = Runner = type.build();
 
-//# sourceMappingURL=../../map/src/runner.map
+//# sourceMappingURL=map/runner.map
