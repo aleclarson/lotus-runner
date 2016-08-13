@@ -29,7 +29,8 @@ module.exports = (args) ->
 
       pattern = module.spec + "/**/*." + if needsCoffee then "coffee" else "js"
 
-      module.crawl pattern
+      module.crawl pattern,
+        ignore: "**/{node_modules,__tests__}/**"
 
       .then (files) ->
 

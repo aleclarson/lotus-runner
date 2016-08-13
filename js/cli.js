@@ -22,7 +22,9 @@ module.exports = function(args) {
       assert(module.spec, "Module named '" + module.name + "' must define its `spec`!");
       needsCoffee = module.hasPlugin("lotus-coffee");
       pattern = module.spec + "/**/*." + (needsCoffee ? "coffee" : "js");
-      return module.crawl(pattern).then(function(files) {
+      return module.crawl(pattern, {
+        ignore: "**/{node_modules,__tests__}/**"
+      }).then(function(files) {
         var runner;
         if (files.length === 0) {
           log.moat(1);
