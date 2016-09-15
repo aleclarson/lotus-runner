@@ -10,7 +10,6 @@
     "postinstall": "postinstall-build js 'npm run build'"
   },
   "dependencies": {
-    "Promise": "aleclarson/Promise#1.0.0",
     "Type": "aleclarson/Type#1.1.0",
     "assert": "aleclarson/assert#1.0.0",
     "assertType": "aleclarson/assertType#2.0.0",
@@ -20,7 +19,6 @@
     "globby": "aleclarson/globby#4.0.0",
     "io": "aleclarson/io#2.1.0",
     "isType": "aleclarson/isType#1.0.0",
-    "log": "aleclarson/log#1.0.0",
     "postinstall-build": "0.2.x",
     "sync": "aleclarson/sync#1.0.0"
   },
