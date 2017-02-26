@@ -16,10 +16,17 @@ log = require "log"
 
 type = Type "Runner"
 
-type.defineOptions
-  suite: String.withDefault "lotus-jasmine" # TODO: Default to 'lotus-jest' instead!
-  reporter: String.withDefault "lotus-jasmine/reporter"
-  bench: Boolean.withDefault no
+type.defineArgs ->
+
+  types:
+    suite: String
+    reporter: String
+    bench: Boolean
+
+  defaults:
+    suite: "lotus-jasmine"
+    reporter: "lotus-jasmine/reporter"
+    bench: no
 
 type.defineFrozenValues
 
