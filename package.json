@@ -1,0 +1,17 @@
+{
+  "name": "lotus-runner",
+  "version": "1.1.1",
+  "main": "js/index",
+  "dependencies": {
+    "Type": "aleclarson/Type#2.3.1",
+    "assert": "aleclarson/assert#1.0.1",
+    "assertType": "aleclarson/assertType#2.0.1",
+    "benchmark": "^2.1.0",
+    "clear-require": "^1.0.1",
+    "emptyFunction": "aleclarson/emptyFunction#1.0.0",
+    "globby": "aleclarson/globby#4.0.0",
+    "io": "aleclarson/io#2.2.1",
+    "isType": "aleclarson/isType#1.0.1",
+    "sync": "aleclarson/sync#1.0.2"
+  }
+}
