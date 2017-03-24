@@ -1,0 +1,14 @@
+{
+  "name": "lotus-runner",
+  "version": "2.0.0",
+  "main": "js/index",
+  "dependencies": {
+    "Type": "aleclarson/Type#2.3.1",
+    "assertType": "aleclarson/assertType#2.0.1",
+    "benchmark": "^2.1.0",
+    "clear-require": "^1.0.1",
+    "coffee-script": "aleclarson/coffee-script#1.12.4",
+    "emptyFunction": "aleclarson/emptyFunction#1.0.0",
+    "fsx": "aleclarson/fsx#1.2.0"
+  }
+}
