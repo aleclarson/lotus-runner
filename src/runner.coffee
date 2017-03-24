@@ -2,19 +2,14 @@
 # TODO: Prefer module-specific suites and reporters over the globally installed versions.
 #       Use the versions provided by 'lotus-runner/node_modules' when not even a global install exists.
 
+clearRequire = require "clear-require"
 assertType = require "assertType"
 Benchmark = require "benchmark"
-Promise = require "Promise"
-asyncFs = require "io/async"
-syncFs = require "io/sync"
-isType = require "isType"
-assert = require "assert"
 Type = require "Type"
-Path = require "path"
-sync = require "sync"
-log = require "log"
+path = require "path"
+fs = require "fsx"
 
-type = Type "Runner"
+type = Type "TestRunner"
 
 type.defineArgs ->
 
@@ -32,13 +27,25 @@ type.defineFrozenValues
 
   suite: (options) ->
     try suite = require options.suite
-    assert suite, { options, reason: "Failed to load suite!" }
+    catch error
+      log.moat 1
+      log.yellow "Warning: "
+      log.white "The '#{options.suite}' testing suite threw an error!"
+      log.moat 0
+      log.gray error.stack
+      log.moat 1
     return suite
 
   reporter: (options) ->
     return unless options.reporter
     try reporter = require options.reporter
-    assert reporter, { options, reason: "Failed to load reporter!" }
+    catch error
+      log.moat 1
+      log.yellow "Warning: "
+      log.white "The '#{options.reporter}' test reporter threw an error!"
+      log.moat 0
+      log.gray error.stack
+      log.moat 1
     return reporter
 
 type.initInstance (options) ->
@@ -55,60 +62,54 @@ type.initInstance (options) ->
 type.defineMethods
 
   start: (specs) ->
-
     assertType specs, Array
 
     specs.sort (a, b) ->
       a.localeCompare b
 
-    sync.each specs, (spec) ->
+    @_loadPaths specs
+    .then (paths) ->
+      paths.forEach (spec) ->
 
+        # Reload the module for this spec.
+        clearRequire spec
+
+        try require spec
+        catch error
+          log.moat 1
+          log.white "Failed to load test: "
+          log.red spec
+          log.moat 0
+          log.gray error.stack
+          log.moat 1
+
+    .then => @suite.start()
+
+  _loadPaths: (specs) ->
+    assertType specs, Array
+
+    paths = []
+
+    Promise.all specs, (spec) ->
       assertType spec, String
 
-      assert Path.isAbsolute(spec), "Spec path must be absolute!"
+      unless path.isAbsolute spec
+        parent =
+          if spec[0] is "."
+          then process.cwd()
+          else lotus.path
+        spec = path.resolve parent, spec
 
-      delete require.cache[spec]
-
-      try require spec
-      catch error
-        log.moat 1
-        log.red "Failed to load test: "
-        log.white spec
-        log.moat 1
-        throw error
-
-    @suite.start()
-
-  _loadPaths: (paths) ->
-    assertType paths, Array
-    specs = []
-    Promise.map paths, (path, index) =>
-      path = @_resolve path, index
-      @_loadSpecs path, specs
-    .then ->
-      specs
-
-  _resolve: (path, index) ->
-    assertType path, String
-    unless Path.isAbsolute path
-      parent = if path[0] is "." then process.cwd() else lotus.path
-      path = Path.resolve parent, Path.join path, @_specDir
-    path
-
-  _loadSpecs: (path, specs) ->
-
-    asyncFs.isDir path
-    .then (isDir) ->
-      unless isDir
-        specs.push path
+      unless fs.isDir spec
+        paths.push spec
         return
 
-      asyncFs.readDir path
-      .then (files) ->
-        for file in files
-          spec = Path.join path, file
-          if syncFs.isFile spec
-            specs.push spec
-        return
+      files = fs.readDir spec
+      for file in files
+        file = path.join spec, file
+        paths.push file if fs.isFile file
+      return
+
+    .then -> paths
 
 module.exports = Runner = type.build()
