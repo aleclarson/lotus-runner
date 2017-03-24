@@ -1,52 +1,49 @@
 
-assert = require "assert"
+path = require "path"
 
 Runner = require "./runner"
 
-module.exports = (args) ->
+exports.test = (args) ->
 
-  moduleName = args._.shift() or "."
+  modName = args._.shift() or "."
+  mod = lotus.modules.load modName
 
-  lotus.Module.load moduleName
+  log.moat 1
+  log.gray.dim "Testing: "
+  log.green lotus.relative mod.path
+  log.moat 1
 
-  .then (module) ->
+  mod.load ["config"]
+  .then ->
 
-    log.moat 1
-    log.gray.dim "Testing: "
-    log.green lotus.relative module.path
-    log.moat 1
+    try mod.spec ?= "spec"
+    unless mod.spec
+      throw Error "Module named '#{mod.name}' must define its `spec`!"
 
-    module.load [ "config" ]
+    # TODO: Make this more flexible.
+    needsCoffee = mod.hasPlugin "lotus-coffee"
 
-    .then ->
+    pattern = path.join mod.spec, "**", "*."
+    pattern += if needsCoffee then "coffee" else "js"
 
-      try module.spec ?= "spec"
+    mod.crawl pattern,
+      ignored: "**/{.git,node_modules}/**"
 
-      assert module.spec, "Module named '#{module.name}' must define its `spec`!"
+    .then (files) ->
 
-      # TODO: Make this more flexible.
-      needsCoffee = module.hasPlugin "lotus-coffee"
+      if files.length is 0
+        log.moat 1
+        log.red "Error: "
+        log.white "No tests were found."
+        log.moat 1
+        return
 
-      pattern = module.spec + "/**/*." + if needsCoffee then "coffee" else "js"
+      if needsCoffee
+        require "coffee-script/register"
 
-      module.crawl pattern,
-        ignore: "**/{node_modules,__tests__}/**"
+      runner = Runner
+        bench: args.bench
+        suite: args.suite
+        reporter: args.reporter
 
-      .then (files) ->
-
-        if files.length is 0
-          log.moat 1
-          log.red "Error: "
-          log.white "No tests were found."
-          log.moat 1
-          return
-
-        if needsCoffee
-          require "coffee-script/register"
-
-        runner = Runner
-          bench: args.bench
-          suite: args.suite
-          reporter: args.reporter
-
-        runner.start files.map (file) -> file.path
+      runner.start files.map (file) -> file.path
