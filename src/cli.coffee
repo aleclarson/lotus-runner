@@ -20,12 +20,7 @@ exports.test = (args) ->
     unless mod.spec
       throw Error "Module named '#{mod.name}' must define its `spec`!"
 
-    # TODO: Make this more flexible.
-    needsCoffee = mod.hasPlugin "lotus-coffee"
-
-    pattern = path.join mod.spec, "**", "*."
-    pattern += if needsCoffee then "coffee" else "js"
-
+    pattern = path.join mod.spec, "**", "*.{js,coffee}"
     mod.crawl pattern,
       ignored: "**/{.git,node_modules}/**"
 
@@ -38,7 +33,13 @@ exports.test = (args) ->
         log.moat 1
         return
 
-      if needsCoffee
+      exts = {}
+      filePaths = files.map (file) ->
+        ext = file.extension
+        exts[ext] = yes if !exts.hasOwnProperty ext 
+        return file.path
+
+      if exts[".coffee"]
         require "coffee-script/register"
 
       runner = Runner
@@ -46,4 +47,4 @@ exports.test = (args) ->
         suite: args.suite
         reporter: args.reporter
 
-      runner.start files.map (file) -> file.path
+      runner.start filePaths

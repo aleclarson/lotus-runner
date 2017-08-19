@@ -23,30 +23,11 @@ type.defineArgs ->
     reporter: "lotus-jasmine/reporter"
     bench: no
 
-type.defineFrozenValues
+type.defineFrozenValues (options) ->
 
-  suite: (options) ->
-    try suite = require options.suite
-    catch error
-      log.moat 1
-      log.yellow "Warning: "
-      log.white "The '#{options.suite}' testing suite threw an error!"
-      log.moat 0
-      log.gray error.stack
-      log.moat 1
-    return suite
+  suite: @_loadSuite options.suite
 
-  reporter: (options) ->
-    return unless options.reporter
-    try reporter = require options.reporter
-    catch error
-      log.moat 1
-      log.yellow "Warning: "
-      log.white "The '#{options.reporter}' test reporter threw an error!"
-      log.moat 0
-      log.gray error.stack
-      log.moat 1
-    return reporter
+  reporter: @_loadReporter options.reporter
 
 type.initInstance (options) ->
 
@@ -84,6 +65,29 @@ type.defineMethods
           log.moat 1
 
     .then => @suite.start()
+
+  _loadSuite: (suitePath) ->
+    try suite = require suitePath
+    catch error
+      log.moat 1
+      log.yellow "Warning: "
+      log.white "The '#{suitePath}' testing suite threw an error!"
+      log.moat 0
+      log.gray error.stack
+      log.moat 1
+    return suite
+
+  _loadReporter: (reporterPath) ->
+    return unless reporterPath
+    try reporter = require reporterPath
+    catch error
+      log.moat 1
+      log.yellow "Warning: "
+      log.white "The '#{reporterPath}' test reporter threw an error!"
+      log.moat 0
+      log.gray error.stack
+      log.moat 1
+    return reporter
 
   _loadPaths: (specs) ->
     assertType specs, Array
